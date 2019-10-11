@@ -2,14 +2,12 @@ library(tidyverse)
 library(geosphere)
 library(zipcode)
 
-# This code should calculate the distance between the current business address
+# This code calculates the distance between the current business address
 # of each U.S. based SEC registrant (identified by its CIK) and its state of 
 # incorporation (if in the U.S.). The idea is to get the average distance by
 # state of incorporation to assess whether some states indeed have a founding
 # infrastructure (e.g., corporate law) that is attractive to out of state 
 # corporations.
-
-# Unfortunately, the code does not run.
 
 df <- read_csv("data/sub.csv")
 
@@ -49,8 +47,8 @@ df %>%
     lat_ba = latitude,
     long_ba = longitude
   ) %>%
+  filter(!is.na(lat_ba)) %>%
   select(cik, name, sic, ends_with("_inc"), ends_with("_ba"))  %>%
-  filter(!is.na(long_ba)) %>%
   mutate(dist_inc_ba = distGeo(cbind(long_inc, lat_inc), 
                              cbind(long_ba, lat_ba))/1000) %>%
   group_by(state_inc) %>%
