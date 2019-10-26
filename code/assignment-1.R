@@ -11,7 +11,7 @@
 
 #+ setup, include = FALSE
 
-cran_pkgs <- c("dplyr", "tidyr", "lubridate", "stringr", "here", "broom", "knitr", "ggplot2", "WDI")
+cran_pkgs <- c("dplyr", "tidyr", "lubridate", "stringr", "here", "broom", "knitr", "ggplot2", "WDI", "maps", "gganimate", "gifski")
 to_install <- cran_pkgs[!cran_pkgs %in% installed.packages()]
 
 if (length(to_install) > 0) {
@@ -39,9 +39,26 @@ wb = WDI(
   end       = 2016)
 
 wb %>% 
+  mutate(article_by_researcher = article/researcher) %>% View()
+
+article_plot <- wb %>% 
   ggplot(aes(year, article, color = country)) + geom_line() + 
   xlab("Year") + ylab("Number of Scientific and technical journal articles")
+
+article_plot + transition_time(year) + labs(title = "Year: {frame_time}")
+article_plot + transition_reveal(year)
+
+wb %>% 
+  ggplot(aes(year, researcher, color = country)) + geom_line() + 
+  xlab("Year") + ylab("Researchers in R&D (per million people)")
 
 wb %>% 
   ggplot(aes(researcher, article, color = country)) + geom_line() + 
   xlab("Researchers in R&D (per million people)") + ylab("Number of Scientific and technical journal articles")
+
+wb %>% 
+  ggplot() + borders("world", colour="gray50", fill="gray50")
+
+ggplot() + map_data("USA")
+
+
