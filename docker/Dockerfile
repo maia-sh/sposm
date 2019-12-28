@@ -80,7 +80,11 @@ RUN tlmgr install multirow xcolor colortbl wrapfig float tabu varwidth \
 RUN pip3 install setuptools wheel 
 RUN pip3 install pandas numpy matplotlib 
 RUN pip3 install wbdata world_bank_data 
-RUN pip3 install IPython ffmpeg
+RUN pip3 install IPython ffmpeg regex
+RUN pip3 install pytest==3.10.1
+RUN pip3 install jupyterlab pandas_datareader
+RUN pip3 install pyfinance scipy
+RUN pip3 install seaborn math
 
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
@@ -90,7 +94,7 @@ RUN  R -e "install.packages(c('kableExtra', 'ExPanDaR', 'ggmap', 'tidyr', \
   'tufte', 'showtext', 'cowplot', 'DiagrammeR', 'leaflet', 'widgetframe', \
   'zipcode', 'shiny', 'shinyjs', 'grid', 'gridExtra', 'ggwordcloud', 'tm', \
   'qrcode', 'wbstats', 'magick', 'WDI', 'gganimate', 'directlabels', \
-  'transformr', 'png', 'gifski', 'animation', 'reticulate'), \
+  'transformr', 'png', 'gifski', 'animation', 'reticulate', 'xtable'), \
   repos = c(CRAN = 'https://mran.microsoft.com/snapshot/2019-09-25'))"
 
 # Replacement repo as MRAN was flaky over the last days
