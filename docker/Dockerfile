@@ -94,7 +94,8 @@ RUN  R -e "install.packages(c('kableExtra', 'ExPanDaR', 'ggmap', 'tidyr', \
   'tufte', 'showtext', 'cowplot', 'DiagrammeR', 'leaflet', 'widgetframe', \
   'zipcode', 'shiny', 'shinyjs', 'grid', 'gridExtra', 'ggwordcloud', 'tm', \
   'qrcode', 'wbstats', 'magick', 'WDI', 'gganimate', 'directlabels', \
-  'transformr', 'png', 'gifski', 'animation', 'reticulate', 'xtable'), \
+  'transformr', 'png', 'gifski', 'animation', 'reticulate', 'xtable', \
+  'janitor', 'purrr', 'rvest', 'stringr' 'WikipediR'), \
   repos = c(CRAN = 'https://mran.microsoft.com/snapshot/2019-09-25'))"
 
 # Replacement repo as MRAN was flaky over the last days
