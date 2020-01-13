@@ -2,28 +2,39 @@
 # author: "Maia Salholz-Hillel"
 # date: "`r Sys.Date()`"
 
+
+# Assignment --------------------------------------------------------------
+
 # Collect (scrape) and tidy Wikipedia data. Collect whatever data you find to be interesting and can get in a standardized way for a reasonable set of pages. The tidy datasets should be stored in the “data” directory. If you feel like it, you can also prepare an informative visual based on your scraped data. Possible data includes:
 # The info in the top right infobox
 # The length of the Wikipedia article
 # Some info on its revision history
 
 
-# analysis plan -----------------------------------------------------------
-# find all pages in categories of "18th-century French scientists" and "18th-century women scientists"
-#   df with col for category (rep of 2) and each page
-# filter for page not unique (i.e. appears in both categories)
-# find all categories all non-unique pages (or unique, then find for all pages if additional visuals)
-# Questions/graphics:
-# How many "18th-century French scientists" are women?
-# How many "18th-century women scientists" are French?
-# Of "18th-century French women scientists" (in both categories), what other categories are they in?
-# Maybe:
-# Of "18th-century French scientists" who are not women, what other categories are they in?
-# Of "18th-century women scientists" who are not French, what other categories are they in?
+# My Research Question ----------------------------------------------------
 
+# BACKGROUND
+# Women are underepresented on Wikipedia (https://wikimediafoundation.org/news/2018/10/18/wikipedia-mirror-world-gender-biases/). This gender bias and underrepresentation includes women in science (https://www.nature.com/articles/d41586-018-05947-8) and women in history (http://theconversation.com/why-wikipedia-often-overlooks-stories-of-women-in-history-92555). During my bachelors in neuroscience and romance languages, I experienced this issue during my research on 18th century French women scientists. For this assignment, I decided to explore the following research questions:
+# How many 18th century French women scientists are represented on Wikipedia?
+# What categories are 18th century French women scientists represented in?
+# What basic information (i.e., Wikipedia infobox) is provided for 18th century French women scientists?
+
+# METHOD
+# I first looked for a category for "18th century French women scientists" but did not find any. Instead I used the intersection of "18th-century French scientists" and "18th-century women scientists." I collected a list of all the pages in each of these two categories (dataframe 1: pgs_fr_or_w) and selected the pages that appeared in both categories (dataframe 2: pgs_fr_and_w), which represent "18th century French women scientists". For each page on an "18th century French women scientist", I collected the categories mentioned for each page (dataframe 3: cats_fr_and_w) and the information in the infobox, when an infobox was available (dataframe 4: info_fr_and_w).
+
+# FINDINGS
+# I found 32 pages on "18th-century French scientists" and 50 pages on "18th-century women scientists" (dataframe 1). Of these, 8 pages were on "18th century French women scientists" (dataframe 2). These "18th century French women scientists" are mentioned in 93 unique categories. Only one of these "18th century French women scientists" has an infobox.
+
+# CONCLUSION
+# There is still a lot of work needed to reduce the underrepresentation of 18th century French women scientists, and likely other women (scientists), on Wikipedia. The Berlin Institute of Health promotes this with iniatives such as the Diversithon (https://www.bihealth.org/en/institute/equal-opportunity/career/berlin-diversithon/).
+
+# SOURCES
+# In addition to help documentation for the packages used, I consulted the following sources:
+# https://medium.com/@kyleake/wikipedia-data-scraping-with-r-rvest-in-action-3c419db9af2d
+# 
 # install and load packages -----------------------------------------------
 
-cran_pkgs <- c("dplyr", "tidyr", "janitor", "lubridate", "purrr", "stringr", "here", "broom", "knitr", "ggplot2", "WikipediR")
+cran_pkgs <- c("dplyr", "tidyr", "rvest", "janitor", "stringr","purrr", "WikipediR")
 to_install <- cran_pkgs[!cran_pkgs %in% installed.packages()]
 
 if (length(to_install) > 0) {
@@ -32,73 +43,50 @@ if (length(to_install) > 0) {
 
 invisible(lapply(c(cran_pkgs), library, character.only = TRUE))
 
+# Get pages in categories -------------------------------------------------
 
-# find categories in page -------------------------------------------------
+get_pages_in_category <- function(category){
+  
+    pages_in_category("en", "wikipedia", 
+                    categories = category,
+                    type = "page",
+                    clean_response = T
+    ) %>% 
+    mutate(category_title = category)
+}
 
-cinp <- categories_in_page("en", "wikipedia", 
-                           pages = "Geneviève Thiroux d'Arconville", 
-                           clean_response = TRUE)
-cinp_two <- categories_in_page("en", "wikipedia",
-                           pages = c("Geneviève Thiroux d'Arconville",
-                                     "Émilie Du Châtelet"),
-                           clean_response = TRUE)
-cinp_ec <- categories_in_page("en", "wikipedia",
-                           pages = "Émilie du Châtelet",
-                           clean_response = TRUE)
+cats_fr_w <- c("18th-century French scientists", 
+              "18th-century women scientists")
 
-# Émilie Du Châtelet
+pgs_fr_or_w <- 
+  map_dfr(cats_fr_w, 
+          get_pages_in_category) %>% 
+  dplyr::rename(page_title = title)
 
-cinp2 <- cinp %>% unlist(recursive = FALSE)
-categs <- 
-  cinp2$categories %>% 
-  mutate(
-    page_id = cinp2$pageid, page_title = cinp2$title,
-    category_title = str_replace(title, "Category:", "")
-)
+n_pgs_fr <-
+  pgs_fr_or_w %>% 
+  filter(category_title == "18th-century French scientists") %>%
+  nrow()
 
-categories_in_page("en", "wikipedia", 
-                   pages = "Nicole-Reine Lepaute", 
-                   clean_response = TRUE)
+n_pgs_w <-
+  pgs_fr_or_w %>% 
+  filter(category_title == "18th-century women scientists") %>%
+  nrow()
 
-# find pages in a category ------------------------------------------------
+# pgs_fr_or_w %>% distinct(pageid, .keep_all = TRUE)
 
-# both <- pages_in_category("en", "wikipedia", 
-#                           categories = c("18th-century French scientists", 
-#                                          "18th-century women scientists"), 
-#                           clean_response = F)
+pgs_fr_and_w <- pgs_fr_or_w %>% janitor::get_dupes(pageid)
 
-cat_fr_raw <- pages_in_category("en", "wikipedia", 
-                  categories = "18th-century French scientists",
-                  type = "page",
-                  clean_response = T)
-
-cat_fr <-
-  cat_fr_raw %>% 
-  mutate(category_title = "18th-century French scientists",
-         page_title = title)
-
-cat_w_raw <- pages_in_category("en", "wikipedia", 
-                                 categories = "18th-century women scientists",
-                                 type = "page",
-                                 clean_response = T)
-
-cat_w <-
-  cat_w_raw %>% 
-  mutate(category_title = "18th-century women scientists",
-         page_title = title)
-
-cat_comb <- bind_rows(cat_fr, cat_w)
-
-# cat_comb %>% distinct(pageid, .keep_all = TRUE)
-
-pgs_in_both <- cat_comb %>% janitor::get_dupes(pageid)
-
-fr_w <- 
-  pgs_in_both %>% 
+names_fr_and_w <- 
+  pgs_fr_and_w %>% 
   distinct(pageid, .keep_all = TRUE) %>% 
   pull(page_title)
 
-get_page_categories <- function(page) {
+n_pgs_fr_and_w <-
+  length(names_fr_and_w)
+# Get categories for pages ------------------------------------------------
+
+get_categories_in_page <- function(page) {
   
   categories_raw <- 
     categories_in_page("en", "wikipedia",
@@ -113,8 +101,60 @@ get_page_categories <- function(page) {
     )
 }
 
-cat_fr_w <-
-  fr_w %>% 
-  map_dfr(get_page_categories) %>% 
+cats_fr_and_w <-
+  names_fr_and_w %>% 
+  map_dfr(get_categories_in_page) %>% 
   mutate(category_title = str_replace(title, "Category:", ""))
 
+n_cats_fr_and_w <-
+ nrow(cats_fr_and_w)
+  
+# Get infoboxes -----------------------------------------------------------
+
+get_infobox <- function(url) {
+  
+  infobox_raw <-
+    url %>%
+    read_html() %>%
+    html_node("table.infobox")
+  
+  if (length(infobox_raw) == 0) {
+    return(NULL)
+  }
+  
+  infobox_raw %>% 
+    html_table(header = FALSE)
+  
+  df_infobox_raw <-
+    infobox_raw %>%
+    html_table(header = FALSE)
+  
+  info_names <- 
+    df_infobox_raw %>% 
+    pull(1)
+  
+  infobox <- 
+    df_infobox_raw %>% 
+    pull(2) %>% 
+    t() %>% 
+    as.data.frame()
+  
+  colnames(infobox) <- info_names
+  
+  colnames(infobox)[1] <- "page_title"
+  
+  infobox %>% 
+    janitor::clean_names() %>%
+    select(page_title, born, died, nationality, known_for, 
+           spouse_s, partner_s, children, fields, influences
+    )
+}
+
+# create urls for 18th century French women scientists
+urls_fr_and_w <-
+  names_fr_and_w %>% 
+  str_replace_all(" ", "_") %>% 
+  str_replace("^", "https://en.wikipedia.org/wiki/")
+
+info_fr_and_w <-
+  map_dfr(urls_fr_and_w, get_infobox)
