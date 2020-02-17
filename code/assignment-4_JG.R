@@ -1,7 +1,9 @@
-# title: "Assignment #3"
+# title: "Assignment #4"
 # author: "Maia Salholz-Hillel"
 # date: "`r Sys.Date()`"
 
+# JG: The below is very nice and readable code. Thank you! See my remarks
+#     in-between.
 
 # Assignment --------------------------------------------------------------
 
@@ -31,9 +33,10 @@
 # SOURCES
 # In addition to help documentation for the packages used, I consulted the following sources:
 # https://medium.com/@kyleake/wikipedia-data-scraping-with-r-rvest-in-action-3c419db9af2d
-# 
-# install and load packages -----------------------------------------------
 
+# Install and load packages -----------------------------------------------
+
+# NOTE: I tried to update the dockerfile, but I couldn't figure out how to make the pull request for a single commit/file.
 cran_pkgs <- c("dplyr", "tidyr", "rvest", "janitor", "stringr","purrr", "WikipediR")
 to_install <- cran_pkgs[!cran_pkgs %in% installed.packages()]
 
@@ -42,6 +45,9 @@ if (length(to_install) > 0) {
 }
 
 invisible(lapply(c(cran_pkgs), library, character.only = TRUE))
+
+# JG: A somewhat taste-based remark. Most developers consider it "rude" to
+#     install packages etc. in user land without at least asking first.
 
 # Get pages in categories -------------------------------------------------
 
@@ -62,6 +68,22 @@ pgs_fr_or_w <-
   map_dfr(cats_fr_w, 
           get_pages_in_category) %>% 
   dplyr::rename(page_title = title)
+
+# JG: There is one obs with title "List of female scientists before the 20th century"
+#     most likely a miss-match (counted as female below but does not matter at 
+#     later stages)
+
+# A somewhat leaner approach to what you did:
+
+#pgs_fr_and_w <- 
+#  map_dfr(cats_fr_w, 
+#        get_pages_in_category) %>% 
+#  rename(page_title = title) %>%
+#  group_by(page_title) %>%
+#  filter(n() == 2) %>%
+#  select(-category_title, -timestamp) %>%
+#  distinct()
+
 
 n_pgs_fr <-
   pgs_fr_or_w %>% 
@@ -84,6 +106,7 @@ names_fr_and_w <-
 
 n_pgs_fr_and_w <-
   length(names_fr_and_w)
+
 # Get categories for pages ------------------------------------------------
 
 get_categories_in_page <- function(page) {
@@ -148,6 +171,12 @@ get_infobox <- function(url) {
     select(page_title, born, died, nationality, known_for, 
            spouse_s, partner_s, children, fields, influences
     )
+  
+# JG: My experience is that info boxes are not really standardized across
+#     Wikipedia. Thus, this appraoch is likely to fail when you scrape 
+#     info boxes for a larger sample. Instead you need to collect all 
+#     info items regardless of the title and then deal with the mess 
+#     during data cleanup.
 }
 
 # create urls for 18th century French women scientists
@@ -158,3 +187,8 @@ urls_fr_and_w <-
 
 info_fr_and_w <-
   map_dfr(urls_fr_and_w, get_infobox)
+
+# JG: Nice code. In principle, you would still need to clean the data and parse
+#     it into analyzable data but with one observation that makes only limited
+#     sense ;-)
+
